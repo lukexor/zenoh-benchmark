@@ -95,3 +95,5 @@ Running the benchmarks on my computer I arrive at:
 ## Modifications from original `nats.rs`
 
 I moved initialization of the client / session for both `nats_benchmark` and `zenoh_benchmark` outside of the benchmarking loop. I feel it's more representative, as these clients / sessions would be long-lived.
+
+I also moved the common pieces of both benchmarks, like the definition of the `TestMessage` and other `const`s used to control testing into the library to make the benchmarks cleaner and more obviously consistent.
