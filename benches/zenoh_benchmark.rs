@@ -1,10 +1,10 @@
-use std::time::Duration;
 use criterion::{criterion_group, criterion_main, Criterion, Throughput};
+use log::*;
 use prost::Message;
+use std::time::Duration;
 use tokio::runtime::Runtime;
 use zenoh::{self, config::Config, Session, Wait};
-use log::*;
-use zenoh_benchmark::{test_message, DURATION, NUM_MESSAGES, INPUT};
+use zenoh_benchmark::{test_message, DURATION, INPUT, NUM_MESSAGES};
 
 async fn start_sub() {
     let session = zenoh::open(Config::default())
@@ -54,10 +54,9 @@ pub fn pubsub_benchmark(c: &mut Criterion) {
         .wait()
         .expect("Unable to start publisher session");
     group.bench_function("zenoh", |b| {
-        b.to_async(&runtime)
-            .iter(|| async { 
-                send_pub(session.clone(), NUM_MESSAGES).await;
-            });
+        b.to_async(&runtime).iter(|| async {
+            send_pub(session.clone(), NUM_MESSAGES).await;
+        });
     });
 
     session.close().wait().expect("Unable to close sesion");

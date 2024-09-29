@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use prost::Message;
 use std::time::Duration;
 use tokio::runtime::Runtime;
-use zenoh_benchmark::{test_message, NATS_URL, NUM_MESSAGES, DURATION, INPUT};
+use zenoh_benchmark::{test_message, DURATION, INPUT, NATS_URL, NUM_MESSAGES};
 
 async fn nats_pubsub(client: async_nats::Client, num_messages: u64) {
     for _ in 0..num_messages {
