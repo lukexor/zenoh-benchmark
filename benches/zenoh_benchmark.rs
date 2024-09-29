@@ -1,9 +1,12 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
+use std::time::Duration;
+use criterion::{criterion_group, criterion_main, Criterion, Throughput};
 use prost::Message;
 use tokio::runtime::Runtime;
 use zenoh::{self, config::Config, Session, Wait};
+use log::*;
 
 const NUM_MESSAGES: u64 = 1000;
+const DURATION: u64 = 30;
 const INPUT: &str = "Input";
 
 #[derive(Message)]
@@ -44,7 +47,7 @@ async fn start_sub() {
         .await
         .expect("Unable to create subscriber");
     while let Ok(sample) = subscriber.recv_async().await {
-        println!("Received: {:?}", sample);
+        trace!("Received: {:?}", sample);
     }
 }
 
@@ -60,36 +63,38 @@ async fn send_pub(session: Session, num_messages: u64) {
     }
 }
 
-#[inline]
-fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n - 1) + fibonacci(n - 2),
-    }
-}
-
 pub fn pubsub_benchmark(c: &mut Criterion) {
+    env_logger::init();
+
     let runtime = Runtime::new().expect("Unable to start tokio Runtime");
-
-    runtime.spawn(start_sub());
-
-    std::thread::sleep(std::time::Duration::from_millis(1000));
 
     let session = zenoh::open(zenoh::Config::default())
         .wait()
         .expect("Unable to start publisher session");
 
-    runtime.spawn(send_pub(session.clone(), NUM_MESSAGES));
+    runtime.spawn(start_sub());
 
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(Duration::from_millis(1000));
 
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
+    runtime.block_on(send_pub(session.clone(), NUM_MESSAGES));
 
-    session
-        .close()
+    let mut group = c.benchmark_group("Pub-Sub");
+    group.throughput(Throughput::Elements(NUM_MESSAGES));
+    group.measurement_time(Duration::from_secs(DURATION));
+
+    // TODO: Figure out why opening and closing the Zenoh Session
+    // within the benchmark_function causes this to malfunction
+    let session = zenoh::open(zenoh::Config::default())
         .wait()
-        .expect("Unable to close Zenoh session");
+        .expect("Unable to start publisher session");
+    group.bench_function("zenoh", |b| {
+        b.to_async(&runtime)
+            .iter(|| send_pub(session.clone(), NUM_MESSAGES));
+    });
+
+    session.close().wait().expect("Unable to close sesion");
+
+    group.finish();
 }
 
 criterion_group!(benches, pubsub_benchmark);
