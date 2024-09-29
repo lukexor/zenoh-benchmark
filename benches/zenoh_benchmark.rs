@@ -36,15 +36,9 @@ pub fn pubsub_benchmark(c: &mut Criterion) {
 
     let runtime = Runtime::new().expect("Unable to start tokio Runtime");
 
-    let session = zenoh::open(zenoh::Config::default())
-        .wait()
-        .expect("Unable to start publisher session");
-
     runtime.spawn(start_sub());
 
     std::thread::sleep(Duration::from_millis(1000));
-
-    runtime.block_on(send_pub(session.clone(), NUM_MESSAGES));
 
     let mut group = c.benchmark_group("Pub-Sub");
     group.throughput(Throughput::Elements(NUM_MESSAGES));
