@@ -89,7 +89,13 @@ pub fn pubsub_benchmark(c: &mut Criterion) {
         .expect("Unable to start publisher session");
     group.bench_function("zenoh", |b| {
         b.to_async(&runtime)
-            .iter(|| send_pub(session.clone(), NUM_MESSAGES));
+            .iter(|| async { 
+                // let session = zenoh::open(zenoh::Config::default())
+                //     .await
+                //     .expect("Unable to start publisher session");
+                send_pub(session.clone(), NUM_MESSAGES).await;
+                // session.close().await.expect("Unable to close sesion");
+            });
     });
 
     session.close().wait().expect("Unable to close sesion");

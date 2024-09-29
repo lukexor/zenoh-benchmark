@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+async-nats = { version = "0.36.0" }
 log = { version = "0.4.22" }
 prost = { version = "0.13.3" }
 tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread"] }
@@ -15,4 +16,8 @@ criterion = { version = "0.5.1", features = ["async", "async_tokio"] }
 
 [[bench]]
 name = "zenoh_benchmark"
+harness = false
+
+[[bench]]
+name = "nats_benchmark"
 harness = false
