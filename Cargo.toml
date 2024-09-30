@@ -9,6 +9,7 @@ log = { version = "0.4.22" }
 prost = { version = "0.13.3" }
 tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread"] }
 zenoh = { version = "=1.0.0-beta.3" }
+zeromq = { version = "0.4.0" }
 
 [dev-dependencies]
 env_logger = { version = "0.11.5" }
@@ -16,6 +17,10 @@ criterion = { version = "0.5.1", features = ["async", "async_tokio"] }
 
 [[bench]]
 name = "zenoh_benchmark"
+harness = false
+
+[[bench]]
+name = "zeromq_benchmark"
 harness = false
 
 [[bench]]

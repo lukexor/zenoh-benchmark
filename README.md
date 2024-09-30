@@ -22,7 +22,11 @@ If you run
 cargo bench
 ```
 
-both the `zenoh_benchmark` and the `nats_benchmark` will be run.
+then the following benchmarks will be run:
+
+* `zenoh_benchmark`
+* `nats_benchmark`
+* `zeromq_benchmark`
 
 ## Interpreting the results
 
@@ -30,38 +34,64 @@ The output will look something like this:
 
 ```bash
 $ cargo bench
-    Finished `bench` profile [optimized] target(s) in 0.10s
-     Running unittests src/lib.rs (target/release/deps/zenoh_benchmark-f24ff03bf2b8fc1f)
+   Compiling zenoh-benchmark v0.1.0 (/home/pete/client-projects/statheros/zenoh-benchmark)
+    Finished `bench` profile [optimized] target(s) in 3.58s
+     Running unittests src/lib.rs (target/release/deps/zenoh_benchmark-88c18ef9f884a34d)
 
-running 1 test
-test tests::it_works ... ignored
+running 0 tests
 
-test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 
-     Running benches/nats_benchmark.rs (target/release/deps/nats_benchmark-7d735994ee6778df)
+     Running benches/nats_benchmark.rs (target/release/deps/nats_benchmark-de1cb48840aac2c8)
 Gnuplot not found, using plotters backend
-Pub-Sub/nats            time:   [814.58 µs 818.98 µs 823.71 µs]
-                        thrpt:  [1.2140 Melem/s 1.2210 Melem/s 1.2276 Melem/s]
+Pub-Sub/nats            time:   [885.39 µs 904.24 µs 921.21 µs]
+                        thrpt:  [1.0855 Melem/s 1.1059 Melem/s 1.1294 Melem/s]
                  change:
-                        time:   [-1.7198% -0.6472% +0.4504%] (p = 0.26 > 0.05)
-                        thrpt:  [-0.4483% +0.6514% +1.7499%]
-                        No change in performance detected.
-Found 7 outliers among 100 measurements (7.00%)
+                        time:   [+2.0586% +3.6495% +5.5822%] (p = 0.00 < 0.05)
+                        thrpt:  [-5.2871% -3.5210% -2.0171%]
+                        Performance has regressed.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+
+Pub-Sub/nats_with_mutex time:   [938.37 µs 943.39 µs 948.40 µs]
+                        thrpt:  [1.0544 Melem/s 1.0600 Melem/s 1.0657 Melem/s]
+Found 3 outliers among 100 measurements (3.00%)
   1 (1.00%) low mild
-  4 (4.00%) high mild
-  2 (2.00%) high severe
+  2 (2.00%) high mild
 
-     Running benches/zenoh_benchmark.rs (target/release/deps/zenoh_benchmark-c89864ddf7788408)
+     Running benches/zenoh_benchmark.rs (target/release/deps/zenoh_benchmark-28a69f6aa83ae4d6)
 Gnuplot not found, using plotters backend
-Pub-Sub/zenoh           time:   [592.16 µs 605.26 µs 619.11 µs]
-                        thrpt:  [1.6152 Melem/s 1.6522 Melem/s 1.6887 Melem/s]
+Pub-Sub/zenoh           time:   [701.93 µs 707.28 µs 713.05 µs]
+                        thrpt:  [1.4024 Melem/s 1.4139 Melem/s 1.4247 Melem/s]
                  change:
-                        time:   [-0.4725% +1.4281% +3.4461%] (p = 0.16 > 0.05)
-                        thrpt:  [-3.3313% -1.4080% +0.4747%]
-                        No change in performance detected.
-Found 1 outliers among 100 measurements (1.00%)
-  1 (1.00%) high mild
+                        time:   [+8.1755% +11.431% +14.791%] (p = 0.00 < 0.05)
+                        thrpt:  [-12.885% -10.258% -7.5577%]
+                        Performance has regressed.
+Found 6 outliers among 100 measurements (6.00%)
+  6 (6.00%) high mild
 
+Pub-Sub/zenoh_with_mutex
+                        time:   [738.49 µs 744.79 µs 751.16 µs]
+                        thrpt:  [1.3313 Melem/s 1.3427 Melem/s 1.3541 Melem/s]
+                 change:
+                        time:   [-1.7068% -0.5312% +0.5319%] (p = 0.36 > 0.05)
+                        thrpt:  [-0.5290% +0.5340% +1.7364%]
+                        No change in performance detected.
+Found 3 outliers among 100 measurements (3.00%)
+  2 (2.00%) high mild
+  1 (1.00%) high severe
+
+     Running benches/zeromq_benchmark.rs (target/release/deps/zeromq_benchmark-2a5475ca42eefb40)
+Gnuplot not found, using plotters backend
+Pub-Sub/zeromq          time:   [2.1148 ms 2.1183 ms 2.1225 ms]
+                        thrpt:  [471.14 Kelem/s 472.09 Kelem/s 472.86 Kelem/s]
+                 change:
+                        time:   [-0.7575% -0.5569% -0.3521%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.3533% +0.5601% +0.7632%]
+                        Change within noise threshold.
+Found 8 outliers among 100 measurements (8.00%)
+  4 (4.00%) high mild
+  4 (4.00%) high severe
 ```
 
 ### Time and Throughput
@@ -85,12 +115,31 @@ Quoting again from the Criterion [docs](https://bheisler.github.io/criterion.rs/
 
 ## Results from my computer
 
+### Results excluding ZeroMQ
+
 Running the benchmarks on my computer I arrive at:
 
 |            | NATS           | Zenoh          | Delta        |
 |------------|----------------|----------------|--------------|
 | time       | 818.98 µs      | 605.26 µs      | 26% decrease |
 | throughput | 1.2210 Melem/s | 1.6522 Melem/s | 35% increase |
+
+### Results including ZeroMQ
+
+And then if we include zeromq, we'll need to compare the NATS and Zenoh benchmarks which used an `Arc<Mutex<>>` to fairly penalize them all.
+
+(We need to do this because it would appear that the zeromq crate's key types like `PubSocket` do not implement `Clone`)
+
+|            | NATS with Mutex | Zenoh with Mutex | ZeroMQ with Mutex | Delta NATS -> Zenoh | Delta NATS -> ZeroMQ |
+|------------|-----------------|------------------|-------------------|---------------------|----------------------|
+| time       | 943.39 µs       | 744.79 µs        | 2.1183 ms         | 21% **faster**      | 124% **slower**      |
+| throughput | 1.0600 Melem/s  | 1.3427 Melem/s   | 472.09 Kelem/s    | 27% **more**        | 55% **less**         |
+
+#### Thoughts
+
+In a real application it's unclear how often we'd want to share around a zeromq socket type, but it is noteworthy that in doing so we'd be penalized by having to go through an `Arc<Mutex<>>` or some other sync primitive.
+
+If we can avoid it, then likely the performance would be better, but gauging by the differences between with and without `Arc<Mutec>>` for NATs and Zenoh, I don't see this appreciably improving the case for ZeroMQ.
 
 ## Modifications from original `nats.rs`
 
