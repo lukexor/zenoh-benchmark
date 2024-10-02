@@ -4,25 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-nats = { version = "0.36.0" }
-log = { version = "0.4.22" }
-prost = { version = "0.13.3" }
-tokio = { version = "1.40.0", features = ["rt", "rt-multi-thread"] }
-zenoh = { version = "=1.0.0-beta.3" }
-zeromq = { version = "0.4.0" }
+async-nats = "0.36.0"
+futures = { version = "0.3.30", default-features = false }
+pprof = { version = "0.13.0", features = ["criterion", "flamegraph"] }
+prost = "0.13.3"
+tokio = { version = "1.40.0", features = ["rt-multi-thread"] }
+zenoh = "=1.0.0-beta.3"
+zeromq = "0.4.0"
+zmq = "0.10.0"
 
 [dev-dependencies]
-env_logger = { version = "0.11.5" }
 criterion = { version = "0.5.1", features = ["async", "async_tokio"] }
 
-[[bench]]
-name = "zenoh_benchmark"
-harness = false
+[profile.release]
+codegen-units = 1
+lto = "thin"
+
+[profile.flamegraph]
+inherits = "release"
+lto = "off"
+debug = true
 
 [[bench]]
-name = "zeromq_benchmark"
-harness = false
-
-[[bench]]
-name = "nats_benchmark"
+name = "benchmark"
 harness = false
